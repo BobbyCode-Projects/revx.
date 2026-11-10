@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NovaChron RevX for 007 Healthcare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: clinical "command center" — navy ink, teal signal for flow, coral for leakage. Numbered sections = the real meeting agenda order. */
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --ink:#0d1b2e; --muted:#53627a; --line:#dbe2ec;
+  --navy:#0f2a4a; --teal:#0f8a8a; --teal-soft:#dff3f2; --coral:#d4634a; --coral-soft:#fbe8e3;
+  --amber:#c48a12; --green:#2f8a4e; --hero-bg:#0c2340; --hero-fg:#eaf2fb; --hero-muted:#9fb3cc;
+  --f-display:"Manrope",system-ui,sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a1220; --surface:#111c2e; --ink:#e6edf7; --muted:#97a6bd; --line:#24324a;
+  --navy:#9cc3ee; --teal:#3cc2bd; --teal-soft:#0f2e33; --coral:#f08a70; --coral-soft:#3a1f1a;
+  --amber:#e0b04a; --green:#5cc07c; --hero-bg:#07101d; --hero-fg:#eaf2fb; --hero-muted:#8ea3bd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a1220; --surface:#111c2e; --ink:#e6edf7; --muted:#97a6bd; --line:#24324a;
+  --navy:#9cc3ee; --teal:#3cc2bd; --teal-soft:#0f2e33; --coral:#f08a70; --coral-soft:#3a1f1a;
+  --amber:#e0b04a; --green:#5cc07c; --hero-bg:#07101d; --hero-fg:#eaf2fb; --hero-muted:#8ea3bd; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--hero-bg)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.3rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.08rem;font-weight:700}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);display:flex;gap:.6rem;align-items:center}
+.eyebrow b{color:var(--muted);font-weight:500}
+.lead{color:var(--muted);max-width:62ch;font-size:1.05rem}
+section{padding-block:72px;border-top:1px solid var(--line)}
+.sec-head{display:grid;gap:12px;margin-bottom:36px}
+.grid{display:grid;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+.tag.t{background:var(--teal-soft);color:var(--teal)} .tag.c{background:var(--coral-soft);color:var(--coral)}
+.scroll{overflow-x:auto}
+svg text{font-family:var(--f-body)}
+
+/* NAV */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
+.nav a{font-family:var(--f-mono);font-size:.74rem;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+.nav a:hover,.nav a:focus-visible{background:var(--teal-soft);color:var(--teal);outline:none}
+
+/* HERO */
+.hero{background:var(--hero-bg);color:var(--hero-fg);overflow:hidden;position:relative}
+.hero .wrap{padding-block:56px 48px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero .who{font-family:var(--f-mono);font-size:.78rem;color:var(--hero-muted);letter-spacing:.08em;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hero .who span.x{color:#3cc2bd}
+.hero h1{font-size:clamp(2.1rem,4.8vw,3.6rem);font-weight:800;letter-spacing:-.025em;margin:18px 0 6px}
+.hero h1 em{font-style:normal;color:#3cc2bd}
+.hero .sub{font-family:var(--f-display);font-size:clamp(1.05rem,2vw,1.35rem);color:var(--hero-fg);font-weight:500;max-width:30ch}
+.hero .thesis{margin-top:24px;padding:16px 18px;border-left:3px solid #f08a70;background:rgba(255,255,255,.04);color:var(--hero-fg);max-width:52ch}
+.hero .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:22px;font-family:var(--f-mono);font-size:.76rem;color:var(--hero-muted)}
+.hero .meta b{display:block;color:var(--hero-fg);font-weight:500;font-size:.85rem}
+.hero-viz{min-width:0}
+.hero-viz svg{width:100%;height:auto;display:block}
+
+/* PROBLEM journey */
+.journey svg{min-width:860px;width:100%;height:auto}
+.leak-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:22px}
+.leak-list div{font-size:.88rem;padding:10px 12px;border:1px dashed color-mix(in srgb,var(--coral) 55%,transparent);border-radius:8px;color:var(--ink);display:flex;gap:8px}
+.leak-list div i{font-style:normal;color:var(--coral);font-family:var(--f-mono);font-size:.78rem}
+.question{margin-top:26px;font-family:var(--f-display);font-size:clamp(1.15rem,2.4vw,1.55rem);font-weight:700;max-width:46ch}
+.question span{color:var(--teal)}
+
+/* 4 challenges */
+.four{grid-template-columns:repeat(4,1fr)}
+.four .card{display:grid;gap:10px;align-content:start}
+.ico{width:42px;height:42px;border-radius:9px;background:var(--teal-soft);display:grid;place-items:center}
+.ico svg{width:22px;height:22px;stroke:var(--teal);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.four .card.rev .ico{background:var(--coral-soft)} .four .card.rev .ico svg{stroke:var(--coral)}
+.four p{color:var(--muted);font-size:.92rem}
+.distinction{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.distinction div{padding:14px 16px;border-radius:8px;background:var(--surface);border:1px solid var(--line);font-size:.95rem}
+.distinction b{font-family:var(--f-display)}
+
+/* discovery */
+.disc{grid-template-columns:1.25fr .75fr;align-items:start}
+.qrow{display:grid;grid-template-columns:28px 1fr 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:.92rem;align-items:start}
+.qrow:last-child{border-bottom:0}
+.qrow .n{font-family:var(--f-mono);color:var(--muted);font-size:.8rem;padding-top:2px}
+.qrow .a{color:var(--teal);display:flex;gap:6px}
+.qrow .a::before{content:"→";font-family:var(--f-mono)}
+.princ{display:grid;gap:12px}
+.princ .card{padding:16px 18px}
+.princ .card p{color:var(--muted);font-size:.9rem;margin-top:4px}
+
+/* current vs future */
+.cvf{grid-template-columns:1fr 1fr}
+.state{border-radius:12px;padding:22px;border:1px solid var(--line);background:var(--surface);min-width:0}
+.state.now{border-top:4px solid var(--coral)} .state.next{border-top:4px solid var(--teal)}
+.state h3{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.state svg{width:100%;height:auto;display:block}
+.state ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:8px;font-size:.9rem}
+.state li{display:flex;gap:9px;align-items:flex-start}
+.state li::before{content:"";flex:0 0 8px;height:8px;border-radius:50%;margin-top:7px}
+.state.now li::before{background:var(--coral)} .state.next li::before{background:var(--teal)}
+
+/* solution */
+.sol-top{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:center;margin-bottom:28px}
+.three-q{display:grid;gap:10px}
+.three-q div{display:flex;gap:14px;align-items:center;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.three-q .k{font-family:var(--f-mono);font-size:.7rem;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;min-width:62px}
+.three-q b{font-family:var(--f-display);font-size:1.02rem}
+.modules{grid-template-columns:repeat(3,1fr)}
+.mod{display:grid;gap:10px;align-content:start;position:relative;transition:transform .2s,border-color .2s}
+.mod:hover{transform:translateY(-3px);border-color:var(--teal)}
+.mod .num{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.mod ul{margin:0;padding-left:18px;font-size:.88rem;color:var(--muted);display:grid;gap:3px}
+.mod .val{font-size:.85rem;padding-top:10px;border-top:1px dashed var(--line);color:var(--ink)}
+.mod .val b{color:var(--teal);font-weight:600}
+.mod.hot{border-color:color-mix(in srgb,var(--coral) 60%,var(--line))}
+.mod.hot .val b{color:var(--coral)}
+
+/* funnel */
+.funnel{display:grid;gap:7px}
+.fbar{display:grid;grid-template-columns:150px 1fr 54px;align-items:center;gap:10px;font-size:.84rem}
+.fbar .tr{height:24px;background:var(--line);border-radius:4px;overflow:hidden}
+.fbar .fl{height:100%;background:var(--teal);border-radius:4px;transform-origin:left;animation:grow 1.4s cubic-bezier(.2,.8,.2,1) both}
+.fbar.loss .fl{background:var(--coral)}
+.fbar .v{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+@keyframes grow{from{transform:scaleX(.05)}to{transform:scaleX(1)}}
+
+/* leakage */
+.leak-grid{grid-template-columns:1fr 1fr;align-items:start}
+.lk{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.lk:last-child{border-bottom:0}
+.lk b{font-family:var(--f-display)}
+.lk span{color:var(--muted);font-size:.84rem;grid-column:1}
+.lk em{font-style:normal;grid-row:1/3;grid-column:2;align-self:center;font-family:var(--f-mono);font-size:.72rem;color:var(--teal);text-align:right;max-width:150px}
+.calc .row{display:grid;grid-template-columns:1fr 92px;gap:10px;align-items:center;margin-bottom:12px;font-size:.88rem}
+.calc label{display:grid;gap:4px}
+.calc input[type=range]{width:100%;accent-color:var(--teal)}
+.calc output{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.calc .formula{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);padding:10px 12px;background:var(--bg);border-radius:6px;margin-bottom:14px}
+.result{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.result div{padding:14px;border-radius:8px;background:var(--coral-soft)}
+.result div:last-child{background:var(--teal-soft)}
+.result small{display:block;font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.result strong{font-family:var(--f-display);font-size:1.7rem;font-variant-numeric:tabular-nums}
+.result div:first-child strong{color:var(--coral)} .result div:last-child strong{color:var(--teal)}
+.note{font-size:.78rem;color:var(--muted);margin-top:12px}
+
+/* agents */
+.agents{grid-template-columns:1fr 1fr 1.2fr;align-items:stretch}
+.agent .big{font-family:var(--f-display);font-size:2.2rem;font-weight:800;font-variant-numeric:tabular-nums}
+.agent .bar{height:10px;border-radius:5px;background:var(--line);margin:8px 0 4px;overflow:hidden}
+.agent .bar i{display:block;height:100%;background:var(--teal);animation:grow 1.4s both}
+.agent small{color:var(--muted);font-size:.82rem}
+.why{background:var(--teal-soft);border-color:transparent}
+.why ul{margin:8px 0 0;padding-left:18px;font-size:.9rem;display:grid;gap:4px}
+
+/* rcm chain */
+.chain svg{min-width:880px;width:100%;height:auto}
+
+/* roles */
+.roles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:22px}
+.roles div{padding:14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.84rem}
+.roles b{display:block;font-family:var(--f-display);font-size:.92rem;margin-bottom:4px}
+.roles span{color:var(--muted)}
+
+/* integration */
+.arch svg{min-width:900px;width:100%;height:auto}
+.comp{grid-template-columns:repeat(4,1fr);margin-top:26px}
+.comp .card{padding:16px}
+.comp h3{font-size:.95rem;display:flex;gap:8px;align-items:center}
+.comp p{font-size:.85rem;color:var(--muted);margin-top:6px}
+.shield{width:20px;height:20px;stroke:var(--teal);fill:none;stroke-width:1.8;flex:0 0 auto}
+.apis{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.apis span{font-family:var(--f-mono);font-size:.75rem;padding:5px 10px;border:1px solid var(--line);border-radius:20px;background:var(--surface)}
+
+/* impact */
+.impact{grid-template-columns:repeat(5,1fr)}
+.imp{text-align:left;display:grid;gap:8px;align-content:start}
+.imp .ring{width:58px;height:58px}
+.imp p{font-size:.86rem;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:22px}
+.kpi{padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface)}
+.kpi b{font-family:var(--f-display);font-size:.92rem;display:block}
+.kpi code{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.vs{display:grid;grid-template-columns:1fr 40px 1fr;gap:0;margin-top:30px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.vs .h{padding:12px 16px;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}
+.vs .h.l{color:var(--muted);background:var(--bg)} .vs .h.r{color:var(--teal);background:var(--teal-soft)}
+.vs .c{padding:10px 16px;border-top:1px solid var(--line);font-size:.9rem}
+.vs .c.l{color:var(--muted)} .vs .c.r{font-weight:500}
+.vs .ar{border-top:1px solid var(--line);display:grid;place-items:center;color:var(--teal);font-family:var(--f-mono)}
+.vs .ar.h{background:var(--bg)}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative}
+.road::before{content:"";position:absolute;left:4%;right:4%;top:22px;height:3px;background:linear-gradient(90deg,var(--teal) 0 50%,var(--line) 50%);background-size:200% 100%;animation:fillroad 3s ease-out both}
+@keyframes fillroad{from{background-position:100% 0}to{background-position:0 0}}
+.ph{position:relative;padding:0 8px;display:grid;gap:6px;justify-items:start}
+.ph .dot{width:46px;height:46px;border-radius:50%;background:var(--surface);border:3px solid var(--teal);display:grid;place-items:center;font-family:var(--f-mono);font-weight:500;color:var(--teal);z-index:1}
+.ph.mvp .dot{background:var(--teal);color:var(--surface)}
+.ph.exp .dot{border-style:dashed;border-color:var(--muted);color:var(--muted)}
+.ph b{font-family:var(--f-display);font-size:.95rem}
+.ph span{font-size:.82rem;color:var(--muted)}
+.ph em{font-style:normal;font-size:.78rem;color:var(--teal);font-family:var(--f-mono)}
+.pilot{margin-top:26px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:16px 18px;border-radius:10px;border:1px dashed var(--teal)}
+.pilot b{font-family:var(--f-display)}
+
+/* questions */
+.qs{background:var(--hero-bg);color:var(--hero-fg);border-top:0}
+.qs .lead{color:var(--hero-muted)} .qs .eyebrow{color:#3cc2bd}
+.qgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.qcard{padding:18px 20px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+.qcard .qn{font-family:var(--f-mono);color:#3cc2bd;font-size:.85rem;grid-row:1/3;padding-top:2px}
+.qcard small{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--hero-muted)}
+.qcard p{font-size:1rem;color:var(--hero-fg)}
+.qcard.key{border-color:#f08a70;background:rgba(240,138,112,.08)}
+.qcard.key small{color:#f08a70}
+
+/* close */
+.five{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.five div{padding:18px 16px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-family:var(--f-display);font-weight:700;font-size:1rem;display:grid;gap:10px}
+.five i{font-style:normal;font-family:var(--f-mono);font-weight:400;font-size:.75rem;color:var(--teal)}
+.closing{margin-top:30px;padding:26px;border-radius:12px;background:var(--navy);color:var(--bg);font-family:var(--f-display);font-size:clamp(1.15rem,2.4vw,1.5rem);font-weight:700;max-width:none}
+:root[data-theme="dark"] .closing{color:#0a1220}
+footer{padding-block:28px;font-family:var(--f-mono);font-size:.74rem;color:var(--muted);border-top:1px solid var(--line)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+
+/* SVG animation helpers */
+.flow{stroke-dasharray:6 8;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-28}}
+.pulse{animation:pulse 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.25)}}
+
+@media (max-width:980px){
+  .hero .wrap,.sol-top,.disc,.cvf,.leak-grid{grid-template-columns:1fr}
+  .four,.comp{grid-template-columns:1fr 1fr}
+  .modules{grid-template-columns:1fr 1fr}
+  .agents{grid-template-columns:1fr 1fr} .agents .why{grid-column:1/-1}
+  .impact,.five,.roles{grid-template-columns:repeat(2,1fr)}
+  .road{grid-template-columns:repeat(3,1fr);row-gap:26px} .road::before{display:none}
+}
+@media (max-width:600px){
+  section{padding-block:52px}
+  .four,.comp,.modules,.agents,.impact,.five,.roles,.qgrid,.distinction,.result{grid-template-columns:1fr}
+  .road{grid-template-columns:1fr 1fr}
+  .qrow{grid-template-columns:24px 1fr} .qrow .a{grid-column:2}
+  .fbar{grid-template-columns:110px 1fr 46px;font-size:.78rem}
+  .vs{grid-template-columns:1fr 26px 1fr;font-size:.82rem}
+}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+</style>
+<style>html{scroll-behavior:smooth;scroll-padding-top:56px}body{margin:0}</style>
+</head>
+<body>
+
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="who"><span>TOBSS</span><span class="x">×</span><span>007 HEALTHCARE ADVISORY · ALEXANDRIA, VA</span></div>
+      <h1>NovaChron <em>RevX</em></h1>
+      <p class="sub">Patient Access Command Center with Revenue Leakage Intelligence</p>
+      <p class="thesis">Every patient call is a care opportunity and a revenue opportunity. NovaChron RevX shows what happens to each one, where it is lost, why, and what to do next.</p>
+      <div class="meta">
+        <div>Format<b>45-min solution walkthrough</b></div>
+        <div>Data source<b>Voice APIs only · no PHI / EHR</b></div>
+        <div>Next step<b>Focused MVP pilot</b></div>
+      </div>
+    </div>
+    <div class="hero-viz" aria-hidden="true">
+      <svg viewBox="0 0 460 340">
+        <defs>
+          <linearGradient id="hg" x1="0" x2="1"><stop offset="0" stop-color="#3cc2bd"/><stop offset="1" stop-color="#9cc3ee"/></linearGradient>
+        </defs>
+        <!-- funnel frame -->
+        <g fill="none" stroke="#24405f" stroke-width="1">
+          <rect x="20" y="20" width="420" height="300" rx="14"/>
+          <line x1="20" y1="66" x2="440" y2="66"/>
+        </g>
+        <circle cx="40" cy="43" r="5" fill="#f08a70" class="pulse"/>
+        <text x="54" y="47" fill="#9fb3cc" font-size="11" font-family="IBM Plex Mono">LIVE · PATIENT ACCESS</text>
+        <text x="420" y="47" fill="#9fb3cc" font-size="11" text-anchor="end" font-family="IBM Plex Mono">Illustrative</text>
+        <!-- funnel bars -->
+        <g font-size="11" fill="#c9d7e8">
+          <text x="40" y="96">Inbound calls</text><rect x="160" y="85" width="250" height="14" rx="3" fill="url(#hg)"><animate attributeName="width" from="10" to="250" dur="1.4s" fill="freeze"/></rect>
+          <text x="40" y="128">Answered</text><rect x="160" y="117" width="210" height="14" rx="3" fill="url(#hg)"><animate attributeName="width" from="10" to="210" dur="1.6s" fill="freeze"/></rect>
+          <text x="40" y="160">Info captured</text><rect x="160" y="149" width="186" height="14" rx="3" fill="url(#hg)"><animate attributeName="width" from="10" to="186" dur="1.8s" fill="freeze"/></rect>
+          <text x="40" y="192">Coverage cleared</text><rect x="160" y="181" width="160" height="14" rx="3" fill="url(#hg)"><animate attributeName="width" from="10" to="160" dur="2s" fill="freeze"/></rect>
+          <text x="40" y="224">Appointment booked</text><rect x="160" y="213" width="136" height="14" rx="3" fill="#3cc2bd"><animate attributeName="width" from="10" to="136" dur="2.2s" fill="freeze"/></rect>
+        </g>
+        <!-- leakage drips -->
+        <g fill="#f08a70">
+          <circle cx="376" cy="124" r="4"><animate attributeName="cy" values="124;300" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.4s" repeatCount="indefinite"/></circle>
+          <circle cx="328" cy="188" r="4"><animate attributeName="cy" values="188;300" dur="2s" begin=".6s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2s" begin=".6s" repeatCount="indefinite"/></circle>
+          <circle cx="304" cy="220" r="4"><animate attributeName="cy" values="220;300" dur="1.8s" begin="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="1.8s" begin="1.1s" repeatCount="indefinite"/></circle>
+        </g>
+        <rect x="40" y="258" width="380" height="44" rx="8" fill="rgba(240,138,112,.12)" stroke="#f08a70" stroke-width="1"/>
+        <text x="56" y="285" fill="#f08a70" font-size="12" font-family="IBM Plex Mono">REVENUE AT RISK, VISIBLE AT THE POINT OF LOSS</text>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <a href="#problem">01 Problem</a><a href="#challenges">02 Challenges</a><a href="#discovery">03 Discovery</a><a href="#states">04 Current vs Future</a><a href="#solution">05 NovaChron RevX</a><a href="#leakage">06 Revenue</a><a href="#workforce">07 Workforce</a><a href="#rcm">08 Revenue Cycle</a><a href="#integration">09 Integration</a><a href="#impact">10 Impact</a><a href="#roadmap">11 Roadmap</a><a href="#questions">12 Questions</a>
+  </div>
+</nav>
+
+<main>
+<!-- 01 PROBLEM -->
+<section id="problem"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">01 <b>Problem statement</b></div>
+    <h2>A patient call passes seven hand-offs. Each one can lose the appointment.</h2>
+    <p class="lead">The ask began as a real-time call dashboard. The real need is wider: knowing whether each eligible patient inquiry ends in a booked visit, and where it breaks when it doesn't.</p>
+  </div>
+  <div class="scroll journey card" style="padding:18px 10px">
+    <svg viewBox="0 0 900 230" role="img" aria-label="Patient call journey with seven stages and failure points">
+      <path d="M50 90 H850" stroke="var(--line)" stroke-width="4" fill="none"/>
+      <path d="M50 90 H850" stroke="var(--teal)" stroke-width="4" fill="none" class="flow"/>
+      <!-- travelling patient token -->
+      <circle r="9" fill="var(--teal)" cy="90"><animate attributeName="cx" values="50;850" dur="7s" repeatCount="indefinite"/></circle>
+      <g font-size="12.5" text-anchor="middle" fill="var(--ink)">
+        <g><circle cx="50" cy="90" r="22" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/><text x="50" y="95" font-family="IBM Plex Mono" fill="var(--teal)">1</text><text x="50" y="140" font-weight="600">Call in</text></g>
+        <g><circle cx="183" cy="90" r="22" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/><text x="183" y="95" font-family="IBM Plex Mono" fill="var(--teal)">2</text><text x="183" y="140" font-weight="600">Answered</text></g>
+        <g><circle cx="316" cy="90" r="22" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/><text x="316" y="95" font-family="IBM Plex Mono" fill="var(--teal)">3</text><text x="316" y="140" font-weight="600">Demographics</text></g>
+        <g><circle cx="450" cy="90" r="22" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/><text x="450" y="95" font-family="IBM Plex Mono" fill="var(--teal)">4</text><text x="450" y="140" font-weight="600">Eligibility</text></g>
+        <g><circle cx="583" cy="90" r="22" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/><text x="583" y="95" font-family="IBM Plex Mono" fill="var(--teal)">5</text><text x="583" y="140" font-weight="600">Provider / slot</text></g>
+        <g><circle cx="716" cy="90" r="22" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/><text x="716" y="95" font-family="IBM Plex Mono" fill="var(--teal)">6</text><text x="716" y="140" font-weight="600">Booked</text></g>
+        <g><circle cx="850" cy="90" r="22" fill="var(--teal)"/><text x="850" y="95" font-family="IBM Plex Mono" fill="var(--surface)">7</text><text x="850" y="140" font-weight="600">Confirmed</text></g>
+      </g>
+      <!-- failure points -->
+      <g font-size="11" text-anchor="middle" fill="var(--coral)" font-family="IBM Plex Mono">
+        <g><path d="M116 90 v-46" stroke="var(--coral)" stroke-dasharray="3 3"/><circle cx="116" cy="38" r="6" fill="var(--coral)" class="pulse"/><text x="116" y="24">missed / abandoned</text></g>
+        <g><path d="M250 90 v-46" stroke="var(--coral)" stroke-dasharray="3 3"/><circle cx="250" cy="38" r="6" fill="var(--coral)" class="pulse" style="animation-delay:.3s"/><text x="250" y="24">incomplete data</text></g>
+        <g><path d="M383 90 v-46" stroke="var(--coral)" stroke-dasharray="3 3"/><circle cx="383" cy="38" r="6" fill="var(--coral)" class="pulse" style="animation-delay:.6s"/><text x="383" y="24">coverage pending</text></g>
+        <g><path d="M516 90 v-46" stroke="var(--coral)" stroke-dasharray="3 3"/><circle cx="516" cy="38" r="6" fill="var(--coral)" class="pulse" style="animation-delay:.9s"/><text x="516" y="24">no suitable slot</text></g>
+        <g><path d="M650 90 v-46" stroke="var(--coral)" stroke-dasharray="3 3"/><circle cx="650" cy="38" r="6" fill="var(--coral)" class="pulse" style="animation-delay:1.2s"/><text x="650" y="24">booking not completed</text></g>
+        <g><path d="M783 90 v-46" stroke="var(--coral)" stroke-dasharray="3 3"/><circle cx="783" cy="38" r="6" fill="var(--coral)" class="pulse" style="animation-delay:1.5s"/><text x="783" y="24">no confirmation</text></g>
+      </g>
+      <g font-size="12" fill="var(--muted)" text-anchor="middle">
+        <rect x="120" y="172" width="660" height="40" rx="8" fill="var(--coral-soft)"/>
+        <text x="450" y="197" fill="var(--ink)">Data sits in telephony, scheduling, eligibility and spreadsheets. Nobody sees the whole journey.</text>
+      </g>
+    </svg>
+  </div>
+  <p class="question">The business question: <span>are we converting every eligible patient inquiry into a scheduled visit, and if not, where are we losing it?</span></p>
+</div></section>
+
+<!-- 02 CHALLENGES -->
+<section id="challenges"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">02 <b>Four business challenges</b></div>
+    <h2>What we heard, translated into four management needs</h2>
+  </div>
+  <div class="grid four">
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div><h3>Patient access visibility</h3><p>Calls offered, answered, missed, abandoned and waiting, live.</p></div>
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></svg></div><h3>Appointment conversion</h3><p>Whether answered calls become booked visits, and why some don't.</p></div>
+    <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/></svg></div><h3>Workforce performance</h3><p>Agent productivity, workload and the reasons behind variation.</p></div>
+    <div class="card rev"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3>Revenue leakage</h3><p>How many visits are lost, at which stage, and what it costs.</p></div>
+  </div>
+  <div class="distinction">
+    <div><b>Answered ≠ booked.</b> A handled call can still end without an appointment.</div>
+    <div><b>Missed ≠ lost revenue.</b> Repeat callers and recovered inquiries must be separated out.</div>
+  </div>
+</div></section>
+
+<!-- 03 DISCOVERY -->
+<section id="discovery"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">03 <b>Your discovery document</b></div>
+    <h2>Built around the seven questions you asked</h2>
+    <p class="lead">We used 007 Healthcare's discovery pages as the design brief. Every question maps to a NovaChron RevX capability.</p>
+  </div>
+  <div class="grid disc">
+    <div class="card" style="padding:8px 20px">
+      <div class="qrow"><span class="n">Q1</span><span>Is revenue lost to process rather than patient volume?</span><span class="a">Conversion and abandonment reasons by stage</span></div>
+      <div class="qrow"><span class="n">Q2</span><span>Does scheduling reflect how care is delivered today?</span><span class="a">Demand vs provider availability and constraints</span></div>
+      <div class="qrow"><span class="n">Q3</span><span>Are workflows followed?</span><span class="a">Stage completion and process exceptions</span></div>
+      <div class="qrow"><span class="n">Q4</span><span>If a visit isn't booked, do we know why?</span><span class="a">Coded, categorized unsuccessful outcomes</span></div>
+      <div class="qrow"><span class="n">Q5</span><span>Do systems capture the actual work?</span><span class="a">One consolidated operational view</span></div>
+      <div class="qrow"><span class="n">Q6</span><span>Are referrals and follow-ups closed-loop?</span><span class="a">Foundation for downstream journey tracking</span></div>
+      <div class="qrow"><span class="n">Q7</span><span>Low performance: process or people?</span><span class="a">Separates workload, capacity, system and agent causes</span></div>
+    </div>
+    <div class="princ">
+      <div class="card"><span class="tag t">Principle 1</span><h3 style="margin-top:8px">Revenue is a connected journey</h3><p>A front-office miss shows up later as a claims or collections gap.</p></div>
+      <div class="card"><span class="tag t">Principle 2</span><h3 style="margin-top:8px">People issues are often process issues</h3><p>Check workflow, training, ownership and resourcing before the individual.</p></div>
+      <div class="card"><span class="tag t">Principle 3</span><h3 style="margin-top:8px">Technology can't fix a broken workflow</h3><p>NovaChron RevX ships with defined stages, owners and status tracking.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 04 CURRENT VS FUTURE -->
+<section id="states"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">04 <b>Current state → future state</b></div>
+    <h2>From disconnected reports to one live operating picture</h2>
+  </div>
+  <div class="grid cvf">
+    <div class="state now">
+      <h3>Today <span class="tag c">Fragmented</span></h3>
+      <svg viewBox="0 0 440 210" aria-hidden="true">
+        <g font-size="11.5" text-anchor="middle">
+          <rect x="10" y="20" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="70" y="45" fill="var(--ink)">Phone system</text>
+          <rect x="160" y="20" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="220" y="45" fill="var(--ink)">EHR / PM</text>
+          <rect x="310" y="20" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="370" y="45" fill="var(--ink)">Eligibility portal</text>
+          <rect x="85" y="150" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="145" y="175" fill="var(--ink)">Excel exports</text>
+          <rect x="235" y="150" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="295" y="175" fill="var(--ink)">Next-day report</text>
+        </g>
+        <g stroke="var(--coral)" stroke-width="1.5" fill="none" stroke-dasharray="4 5">
+          <path d="M70 60 L130 150"/><path d="M220 60 L160 150"/><path d="M370 60 L320 150"/><path d="M205 170 H235"/>
+        </g>
+        <g fill="var(--coral)" font-family="IBM Plex Mono" font-size="16" font-weight="600" text-anchor="middle">
+          <text x="100" y="110" class="pulse">✕</text><text x="190" y="110" class="pulse" style="animation-delay:.4s">✕</text><text x="345" y="110" class="pulse" style="animation-delay:.8s">✕</text>
+        </g>
+      </svg>
+      <ul>
+        <li>Call counts with no link to booked visits</li>
+        <li>Unbooked outcomes not coded, so root cause is guesswork</li>
+        <li>Supervisors stitch reports by hand, a day late</li>
+        <li>Agents ranked on volume, not on case mix</li>
+        <li>Revenue impact surfaces only in claims and A/R</li>
+      </ul>
+    </div>
+    <div class="state next">
+      <h3>With NovaChron RevX <span class="tag t">Connected</span></h3>
+      <svg viewBox="0 0 440 210" aria-hidden="true">
+        <g font-size="11.5" text-anchor="middle">
+          <rect x="10" y="20" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="70" y="45" fill="var(--ink)">Call events</text>
+          <rect x="160" y="20" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="220" y="45" fill="var(--ink)">Queue &amp; agent state</text>
+          <rect x="310" y="20" width="120" height="40" rx="6" fill="var(--bg)" stroke="var(--line)"/><text x="370" y="45" fill="var(--ink)">Wrap-up codes</text>
+          <text x="220" y="112" fill="var(--muted)" font-size="10" font-family="IBM Plex Mono">VOICE APIs · NO PHI</text>
+          <rect x="95" y="140" width="250" height="54" rx="8" fill="var(--teal)"/><text x="220" y="164" fill="var(--surface)" font-weight="700" font-size="13">NovaChron RevX</text><text x="220" y="182" fill="var(--surface)" font-size="10.5">one live patient-access view</text>
+        </g>
+        <g stroke="var(--teal)" stroke-width="2" fill="none" class="flow">
+          <path d="M70 60 C70 110 150 100 170 140"/><path d="M220 60 V140"/><path d="M370 60 C370 110 290 100 270 140"/>
+        </g>
+        <g fill="var(--teal)">
+          <circle r="4"><animateMotion dur="1.8s" repeatCount="indefinite" path="M70 60 C70 110 150 100 170 140"/></circle>
+          <circle r="4"><animateMotion dur="1.5s" repeatCount="indefinite" path="M220 60 V140"/></circle>
+          <circle r="4"><animateMotion dur="2s" repeatCount="indefinite" path="M370 60 C370 110 290 100 270 140"/></circle>
+        </g>
+      </svg>
+      <ul>
+        <li>Every call tagged with its outcome through standard wrap-up codes</li>
+        <li>Standard reasons for every unbooked inquiry</li>
+        <li>Live funnel, alerts and callback queues</li>
+        <li>Performance read against workload and complexity</li>
+        <li>Revenue at risk estimated from aggregate visit values</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- 05 SOLUTION -->
+<section id="solution"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">05 <b>Solution point of view</b></div>
+    <h2>NovaChron RevX: an intelligence layer across your existing systems</h2>
+    <p class="lead">NovaChron RevX doesn't replace your phone system and never touches your EHR. It listens to voice API events and agent wrap-up codes, turns them into a live operating picture, and tells supervisors where to act.</p>
+  </div>
+  <div class="sol-top">
+    <div class="three-q">
+      <div><span class="k">Now</span><b>What is happening right now?</b></div>
+      <div><span class="k">Where</span><b>Where are we losing scheduling opportunities?</b></div>
+      <div><span class="k">Action</span><b>What should the team do about it?</b></div>
+    </div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:14px">Scheduling funnel <b>illustrative · from call outcomes</b></div>
+      <div class="funnel">
+        <div class="fbar"><span>Scheduling calls</span><div class="tr"><div class="fl" style="width:100%"></div></div><span class="v">6,000</span></div>
+        <div class="fbar"><span>Answered</span><div class="tr"><div class="fl" style="width:91%;animation-delay:.1s"></div></div><span class="v">5,460</span></div>
+        <div class="fbar"><span>Scheduling started</span><div class="tr"><div class="fl" style="width:86%;animation-delay:.2s"></div></div><span class="v">5,160</span></div>
+        <div class="fbar"><span>Coverage cleared</span><div class="tr"><div class="fl" style="width:81%;animation-delay:.3s"></div></div><span class="v">4,860</span></div>
+        <div class="fbar"><span>Booked</span><div class="tr"><div class="fl" style="width:75%;animation-delay:.4s"></div></div><span class="v">4,500</span></div>
+        <div class="fbar loss"><span>Unconverted</span><div class="tr"><div class="fl" style="width:25%;animation-delay:.5s"></div></div><span class="v">1,500</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid modules">
+    <div class="card mod"><span class="num">MODULE 1</span><h3>Real-time call monitoring</h3>
+      <ul><li>Inbound, answered, missed, abandoned, in queue</li><li>Speed of answer and handle time</li><li>Agent status and live calls</li><li>Volume by hour, team, provider group</li></ul>
+      <p class="val"><b>Value:</b> spot spikes and staffing gaps as they happen.</p></div>
+    <div class="card mod"><span class="num">MODULE 2</span><h3>Scheduling funnel &amp; conversion</h3>
+      <ul><li>Call-to-booking stages from wrap-up codes</li><li>Stage drop-off and pending cases</li><li>Conversion on eligible inquiries only</li></ul>
+      <p class="val"><b>Value:</b> see which stage drives low conversion.</p></div>
+    <div class="card mod hot"><span class="num">MODULE 3</span><h3>Revenue leakage identification</h3>
+      <ul><li>Seven coded leakage categories</li><li>Revenue at risk from your average visit value</li><li>Recoverable vs not recoverable</li></ul>
+      <p class="val"><b>Value:</b> financial impact at the front door, not in A/R.</p></div>
+    <div class="card mod"><span class="num">MODULE 4</span><h3>Workforce intelligence</h3>
+      <ul><li>Calls, AHT, hold, first-call resolution</li><li>Bookings and outcome mix per agent</li><li>Case mix and complexity context</li></ul>
+      <p class="val"><b>Value:</b> coach on causes, not on rankings.</p></div>
+    <div class="card mod"><span class="num">MODULE 5</span><h3>Exception management</h3>
+      <ul><li>Callback queue for missed and abandoned calls</li><li>Owner, status and escalation</li><li>Priority for time-sensitive cases</li></ul>
+      <p class="val"><b>Value:</b> recover the patient while it's still possible.</p></div>
+    <div class="card mod"><span class="num">MODULE 6</span><h3>Management insights</h3>
+      <ul><li>Role-based views, executive to agent</li><li>Bottleneck and trend analysis</li><li>Baseline vs pilot KPI tracking</li></ul>
+      <p class="val"><b>Value:</b> one view, clear accountability at each level.</p></div>
+  </div>
+  <div class="roles">
+    <div><b>Executive</b><span>Revenue opportunity, access performance</span></div>
+    <div><b>Operations leader</b><span>Volume, conversion, service levels</span></div>
+    <div><b>Ops manager</b><span>Team results and exceptions</span></div>
+    <div><b>Team lead</b><span>Agent activity and pending cases</span></div>
+    <div><b>Scheduler</b><span>Assigned inquiries and follow-ups</span></div>
+  </div>
+</div></section>
+
+<!-- 06 LEAKAGE -->
+<section id="leakage"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">06 <b>Revenue leakage intelligence</b></div>
+    <h2>Find revenue loss where it starts: at scheduling</h2>
+    <p class="lead">Most organizations see these losses months later in claims and collections. NovaChron RevX codes them on the day they happen and routes each one to an action.</p>
+  </div>
+  <div class="grid leak-grid">
+    <div class="card" style="padding:8px 20px">
+      <div class="lk"><b>Missed calls</b><span>Inbound call not answered</span><em>Callback queue</em></div>
+      <div class="lk"><b>Abandoned calls</b><span>Patient hangs up while waiting</span><em>Wait-time staffing</em></div>
+      <div class="lk"><b>Coverage issue</b><span>Agent codes a coverage blocker</span><em>Front-desk follow-up</em></div>
+      <div class="lk"><b>Scheduling failure</b><span>No suitable slot</span><em>Provider capacity review</em></div>
+      <div class="lk"><b>Incomplete booking</b><span>Booking not finished</span><em>Case follow-up</em></div>
+      <div class="lk"><b>Patient drop-off</b><span>Patient doesn't proceed</span><em>Outreach</em></div>
+      <div class="lk"><b>Process delay</b><span>Too long between stages</span><em>Workflow fix</em></div>
+    </div>
+    <div class="card calc">
+      <div class="eyebrow" style="margin-bottom:12px">Opportunity estimator <b>adjust live</b></div>
+      <div class="formula">Revenue at risk = lost eligible appointments × expected net revenue per visit</div>
+      <label class="row"><span>Monthly inbound calls<input id="c-calls" type="range" min="2000" max="40000" step="500" value="10000"></span><output id="o-calls">10,000</output></label>
+      <label class="row"><span>Share needing scheduling<input id="c-sched" type="range" min="30" max="90" step="5" value="60"></span><output id="o-sched">60%</output></label>
+      <label class="row"><span>Booking conversion<input id="c-conv" type="range" min="40" max="95" step="1" value="75"></span><output id="o-conv">75%</output></label>
+      <label class="row"><span>Recoverable share of losses<input id="c-rec" type="range" min="5" max="50" step="5" value="20"></span><output id="o-rec">20%</output></label>
+      <label class="row"><span>Net revenue per visit<input id="c-rev" type="range" min="50" max="600" step="10" value="150"></span><output id="o-rev">$150</output></label>
+      <div class="result">
+        <div><small>Unconverted / month</small><strong id="r-lost">1,500</strong></div>
+        <div><small>Recoverable opportunity</small><strong id="r-rev">$45,000</strong><small id="r-yr">$540,000 / year</small></div>
+      </div>
+      <p class="note">Illustrative inputs, not 007 Healthcare data. This is potential opportunity, not guaranteed recovery; realized revenue depends on attendance, completed care and payer reimbursement. Pilot figures will use your own payer mix and visit values.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 07 WORKFORCE -->
+<section id="workforce"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">07 <b>Workforce intelligence</b></div>
+    <h2>Low numbers can be a process problem. NovaChron RevX shows which.</h2>
+  </div>
+  <div class="grid agents">
+    <div class="card agent"><span class="tag t">Agent A</span><div class="big" style="margin-top:8px">62.5%</div><div class="bar"><i style="width:62.5%"></i></div><small>80 calls handled · 50 booked</small></div>
+    <div class="card agent"><span class="tag c">Agent B</span><div class="big" style="margin-top:8px">53.8%</div><div class="bar"><i style="width:53.8%;background:var(--coral)"></i></div><small>65 calls handled · 35 booked</small></div>
+    <div class="card why"><h3>Before ranking B lower, NovaChron RevX checks</h3>
+      <ul><li>More complex cases or new-patient visits?</li><li>Provider availability limits on B's queue?</li><li>More coverage-related call outcomes?</li><li>Different patient population or language needs?</li></ul></div>
+  </div>
+</div></section>
+
+<!-- 08 RCM -->
+<section id="rcm"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">08 <b>Connected revenue cycle</b></div>
+    <h2>The front office is the first link in your revenue cycle</h2>
+    <p class="lead">NovaChron RevX works at the first link, using voice data only. Linking to visits, claims and payments would be a separate, optional phase, only if 007 Healthcare chooses it later.</p>
+  </div>
+  <div class="scroll chain card" style="padding:18px 10px">
+    <svg viewBox="0 0 900 220" role="img" aria-label="Revenue cycle chain from scheduling to collections with NovaChron RevX layer underneath">
+      <g font-size="12" text-anchor="middle">
+        <g><rect x="10" y="30" width="130" height="58" rx="8" fill="var(--teal)"/><text x="75" y="56" fill="var(--surface)" font-weight="700">Scheduling</text><text x="75" y="74" fill="var(--surface)" font-size="10.5">voice outcomes · MVP</text></g>
+        <g><rect x="160" y="30" width="130" height="58" rx="8" fill="var(--teal)"/><text x="225" y="56" fill="var(--surface)" font-weight="700">Registration</text><text x="225" y="74" fill="var(--surface)" font-size="10.5">coded on call · MVP</text></g>
+        <g><rect x="310" y="30" width="130" height="58" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="4 4"/><text x="375" y="56" fill="var(--ink)" font-weight="600">Visit</text><text x="375" y="74" fill="var(--muted)" font-size="10.5">&amp; documentation</text></g>
+        <g><rect x="460" y="30" width="130" height="58" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="4 4"/><text x="525" y="56" fill="var(--ink)" font-weight="600">Coding</text><text x="525" y="74" fill="var(--muted)" font-size="10.5">&amp; charge entry</text></g>
+        <g><rect x="610" y="30" width="130" height="58" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="4 4"/><text x="675" y="56" fill="var(--ink)" font-weight="600">Claim</text><text x="675" y="74" fill="var(--muted)" font-size="10.5">submission</text></g>
+        <g><rect x="760" y="30" width="130" height="58" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="4 4"/><text x="825" y="56" fill="var(--ink)" font-weight="600">Collections</text><text x="825" y="74" fill="var(--muted)" font-size="10.5">&amp; A/R</text></g>
+      </g>
+      <g stroke="var(--teal)" stroke-width="2" fill="none"><path d="M140 59 H160"/><path d="M290 59 H310"/><path d="M440 59 H460" stroke="var(--line)"/><path d="M590 59 H610" stroke="var(--line)"/><path d="M740 59 H760" stroke="var(--line)"/></g>
+      <circle r="6" fill="var(--coral)" cy="59"><animate attributeName="cx" values="75;825" dur="5s" repeatCount="indefinite"/><animate attributeName="r" values="4;9" dur="5s" repeatCount="indefinite"/></circle>
+      <text x="450" y="118" text-anchor="middle" font-size="11" fill="var(--coral)" font-family="IBM Plex Mono">a front-office miss grows into a downstream revenue gap</text>
+      <rect x="10" y="140" width="880" height="64" rx="10" fill="var(--teal-soft)" stroke="var(--teal)"/>
+      <text x="450" y="167" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--teal)">NovaChron RevX intelligence layer</text>
+      <text x="450" y="188" text-anchor="middle" font-size="11.5" fill="var(--ink)">Operational visibility · Exception detection · Root-cause analysis · Revenue opportunity tracking</text>
+    </svg>
+  </div>
+  <p class="note">Solid = MVP, from voice APIs and wrap-up codes. Dashed = not in scope; optional future integration at the client's choice.</p>
+</div></section>
+
+<!-- 09 INTEGRATION -->
+<section id="integration"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">09 <b>Integration &amp; compliance</b></div>
+    <h2>Voice APIs in. Insight out. No PHI, no EHR.</h2>
+    <p class="lead">NovaChron RevX connects only to your telephony platform's Voice APIs. It reads call events, queue and agent states, and wrap-up codes. Patient records, clinical data and insurance details never leave your systems.</p>
+  </div>
+  <div class="scroll arch card" style="padding:18px 10px">
+    <svg viewBox="0 0 920 380" role="img" aria-label="Integration architecture: telephony voice APIs feed the NovaChron RevX voice data layer and application, with EHR and PHI excluded">
+      <g font-size="11.5">
+        <text x="20" y="22" font-family="IBM Plex Mono" fill="var(--muted)" font-size="10.5">YOUR TELEPHONY · VOICE APIs</text>
+        <g><rect x="20" y="34" width="220" height="62" rx="8" fill="var(--surface)" stroke="var(--teal)"/><text x="34" y="56" font-weight="700" fill="var(--ink)">Cisco</text><text x="34" y="74" fill="var(--muted)" font-size="10.5">Webex CC / UCCX · Finesse REST,</text><text x="34" y="88" fill="var(--muted)" font-size="10.5">CTI events, call detail records</text></g>
+        <g><rect x="20" y="106" width="220" height="62" rx="8" fill="var(--surface)" stroke="var(--teal)"/><text x="34" y="128" font-weight="700" fill="var(--ink)">X-Lite / Bria softphones</text><text x="34" y="146" fill="var(--muted)" font-size="10.5">SIP call events and CDRs</text><text x="34" y="160" fill="var(--muted)" font-size="10.5">via the connected PBX</text></g>
+        <g><rect x="20" y="178" width="220" height="62" rx="8" fill="var(--surface)" stroke="var(--teal)"/><text x="34" y="200" font-weight="700" fill="var(--ink)">PingPal &amp; cloud voice</text><text x="34" y="218" fill="var(--muted)" font-size="10.5">REST Voice APIs, webhooks</text><text x="34" y="232" fill="var(--muted)" font-size="10.5">(RingCentral, Five9, Genesys…)</text></g>
+        <g><rect x="20" y="250" width="220" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="34" y="271" font-weight="700" fill="var(--ink)">Agent wrap-up codes</text><text x="34" y="288" fill="var(--muted)" font-size="10.5">booked · no slot · coverage · callback</text></g>
+      </g>
+      <g fill="none" stroke="var(--teal)" stroke-width="2" class="flow">
+        <path id="p1" d="M240 65 C305 65 305 170 360 170"/>
+        <path id="p2" d="M240 137 C300 137 305 170 360 170"/>
+        <path id="p3" d="M240 209 C300 209 305 175 360 175"/>
+        <path id="p4" d="M240 275 C300 275 310 185 360 185"/>
+      </g>
+      <g fill="var(--teal)">
+        <circle r="4"><animateMotion dur="1.6s" repeatCount="indefinite"><mpath href="#p1"/></animateMotion></circle>
+        <circle r="4"><animateMotion dur="1.3s" repeatCount="indefinite" begin=".3s"><mpath href="#p2"/></animateMotion></circle>
+        <circle r="4"><animateMotion dur="1.8s" repeatCount="indefinite" begin=".6s"><mpath href="#p3"/></animateMotion></circle>
+        <circle r="4" fill="var(--navy)"><animateMotion dur="2s" repeatCount="indefinite" begin=".2s"><mpath href="#p4"/></animateMotion></circle>
+      </g>
+      <rect x="360" y="40" width="250" height="270" rx="12" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.5"/>
+      <text x="485" y="66" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="var(--teal)">NOVACHRON REVX VOICE DATA LAYER</text>
+      <g font-size="11.5" fill="var(--ink)">
+        <rect x="380" y="80" width="210" height="34" rx="6" fill="var(--surface)"/><text x="394" y="102">API gateway · OAuth 2.0 · TLS 1.2+</text>
+        <rect x="380" y="122" width="210" height="34" rx="6" fill="var(--surface)"/><text x="394" y="144">Call lifecycle event stream</text>
+        <rect x="380" y="164" width="210" height="34" rx="6" fill="var(--surface)"/><text x="394" y="186">Caller ID hashed · repeat-call match</text>
+        <rect x="380" y="206" width="210" height="34" rx="6" fill="var(--surface)"/><text x="394" y="228">Wrap-up code mapping</text>
+        <rect x="380" y="248" width="210" height="34" rx="6" fill="var(--surface)"/><text x="394" y="270">KPI engine · rules · audit log</text>
+      </g>
+      <path d="M610 175 H660" stroke="var(--teal)" stroke-width="2.5" fill="none" class="flow"/>
+      <rect x="660" y="40" width="240" height="270" rx="12" fill="var(--teal)"/>
+      <text x="780" y="70" text-anchor="middle" font-weight="700" font-size="14" fill="var(--surface)">NovaChron RevX application</text>
+      <g font-size="11.5" fill="var(--surface)">
+        <text x="680" y="104">● Live call dashboard</text><text x="680" y="132">● Scheduling outcome funnel</text><text x="680" y="160">● Agent analytics</text><text x="680" y="188">● Callback &amp; exception queue</text><text x="680" y="216">● Revenue-at-risk estimates</text><text x="680" y="244">● Role-based views (SSO)</text>
+      </g>
+      <text x="780" y="290" text-anchor="middle" font-size="10.5" fill="var(--surface)" font-family="IBM Plex Mono">read-only · no write-back</text>
+      <!-- excluded -->
+      <rect x="20" y="326" width="880" height="40" rx="8" fill="var(--coral-soft)" stroke="var(--coral)" stroke-dasharray="4 4"/>
+      <text x="38" y="351" font-size="11.5" fill="var(--coral)" font-family="IBM Plex Mono" font-weight="500">NOT CONNECTED</text>
+      <text x="160" y="351" font-size="11.5" fill="var(--ink)">EHR / practice management  ·  patient records &amp; PHI  ·  insurance &amp; eligibility data  ·  call recordings &amp; transcripts</text>
+    </svg>
+  </div>
+  <div class="apis">
+    <span>Cisco Finesse REST</span><span>Webex Contact Center APIs</span><span>CTI events</span><span>SIP / CDR feeds</span><span>Voice REST APIs</span><span>Webhooks</span><span>Wrap-up / disposition codes</span><span>SSO / SAML</span>
+  </div>
+  <div class="grid comp">
+    <div class="card"><h3><svg class="shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>PHI-free by design</h3><p>No EHR, clinical or insurance data. Caller numbers hashed on arrival. Recordings stay in your platform.</p></div>
+    <div class="card"><h3><svg class="shield" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Data protection</h3><p>US-hosted. AES-256 at rest, TLS 1.2+ in transit, role-based access, MFA, full audit trail.</p></div>
+    <div class="card"><h3><svg class="shield" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7"/></svg>Voice &amp; outreach rules</h3><p>Callback workflows respect TCPA consent and state call-recording consent laws.</p></div>
+    <div class="card"><h3><svg class="shield" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>HIPAA-aligned safeguards</h3><p>Because a provider's call logs can still identify patients, we apply HIPAA Security Rule controls and sign a BAA if required.</p></div>
+  </div>
+  <p class="note">API method depends on your telephony version and licensing, confirmed in discovery. Compliance controls are validated and documented during implementation.</p>
+</div></section>
+
+<!-- 10 IMPACT -->
+<section id="impact"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">10 <b>Business impact</b></div>
+    <h2>What 007 Healthcare gains</h2>
+  </div>
+  <div class="grid impact">
+    <div class="card imp"><svg class="ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="var(--coral)" stroke-width="6" stroke-dasharray="151" stroke-dashoffset="30" transform="rotate(-90 30 30)"><animate attributeName="stroke-dashoffset" from="151" to="30" dur="1.6s" fill="freeze"/></circle></svg><h3>Revenue protection</h3><p>Find and recover lost appointment opportunities.</p></div>
+    <div class="card imp"><svg class="ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="var(--teal)" stroke-width="6" stroke-dasharray="151" stroke-dashoffset="40" transform="rotate(-90 30 30)"><animate attributeName="stroke-dashoffset" from="151" to="40" dur="1.6s" fill="freeze"/></circle></svg><h3>Patient experience</h3><p>Fewer missed calls, shorter waits, less friction.</p></div>
+    <div class="card imp"><svg class="ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="var(--teal)" stroke-width="6" stroke-dasharray="151" stroke-dashoffset="50" transform="rotate(-90 30 30)"><animate attributeName="stroke-dashoffset" from="151" to="50" dur="1.6s" fill="freeze"/></circle></svg><h3>Operational efficiency</h3><p>No manual report stitching; live supervisor view.</p></div>
+    <div class="card imp"><svg class="ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="var(--teal)" stroke-width="6" stroke-dasharray="151" stroke-dashoffset="45" transform="rotate(-90 30 30)"><animate attributeName="stroke-dashoffset" from="151" to="45" dur="1.6s" fill="freeze"/></circle></svg><h3>Workforce productivity</h3><p>Balanced workload, targeted coaching.</p></div>
+    <div class="card imp"><svg class="ring" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="var(--line)" stroke-width="6"/><circle cx="30" cy="30" r="24" fill="none" stroke="var(--navy)" stroke-width="6" stroke-dasharray="151" stroke-dashoffset="35" transform="rotate(-90 30 30)"><animate attributeName="stroke-dashoffset" from="151" to="35" dur="1.6s" fill="freeze"/></circle></svg><h3>Management intelligence</h3><p>Faster, evidence-based decisions.</p></div>
+  </div>
+  <div class="eyebrow" style="margin-top:34px">Pilot KPI framework <b>baseline first, then track</b></div>
+  <div class="kpis">
+    <div class="kpi"><b>Call answer rate</b><code>answered ÷ offered</code></div>
+    <div class="kpi"><b>Abandonment rate</b><code>abandoned ÷ offered</code></div>
+    <div class="kpi"><b>Average speed of answer</b><code>avg seconds to answer</code></div>
+    <div class="kpi"><b>Appointment conversion</b><code>booked ÷ eligible inquiries</code></div>
+    <div class="kpi"><b>Outcome coding rate</b><code>coded calls ÷ handled calls</code></div>
+    <div class="kpi"><b>Scheduling failure rate</b><code>failed ÷ attempts</code></div>
+    <div class="kpi"><b>Callback recovery</b><code>recovered ÷ callback-eligible</code></div>
+    <div class="kpi"><b>First-call resolution</b><code>resolved without repeat</code></div>
+    <div class="kpi"><b>Revenue at risk</b><code>unconverted × net revenue</code></div>
+  </div>
+  <div class="vs" role="table" aria-label="Traditional call-center dashboard vs NovaChron RevX">
+    <div class="h l" role="columnheader">Call-center dashboard</div><div class="ar h"></div><div class="h r" role="columnheader">NovaChron RevX</div>
+    <div class="c l">Tracks calls</div><div class="ar">→</div><div class="c r">Tracks patient access journeys</div>
+    <div class="c l">Counts calls answered</div><div class="ar">→</div><div class="c r">Measures appointment conversion</div>
+    <div class="c l">Ranks agents</div><div class="ar">→</div><div class="c r">Explains causes of performance</div>
+    <div class="c l">Reports missed calls</div><div class="ar">→</div><div class="c r">Recovers recoverable patients</div>
+    <div class="c l">Historical reports</div><div class="ar">→</div><div class="c r">Real-time intervention</div>
+    <div class="c l">Activity metrics</div><div class="ar">→</div><div class="c r">Revenue impact</div>
+  </div>
+</div></section>
+
+<!-- 11 ROADMAP -->
+<section id="roadmap"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">11 <b>Implementation roadmap</b></div>
+    <h2>Start focused. Prove value. Then expand.</h2>
+  </div>
+  <div class="road">
+    <div class="ph"><span class="dot">1</span><b>Discovery</b><span>Validate telephony, queues and call outcome codes</span><em>Agreed requirements</em></div>
+    <div class="ph"><span class="dot">2</span><b>Voice integration</b><span>Connect voice APIs and wrap-up codes</span><em>Live call dataset</em></div>
+    <div class="ph mvp"><span class="dot">3</span><b>MVP</b><span>Live dashboard, funnel, agent view</span><em>Operational visibility</em></div>
+    <div class="ph"><span class="dot">4</span><b>Exceptions</b><span>Callbacks, failed bookings, follow-ups</span><em>Actionable workflow</em></div>
+    <div class="ph"><span class="dot">5</span><b>Revenue intel</b><span>Opportunity estimates, root cause</span><em>Revenue assurance</em></div>
+    <div class="ph exp"><span class="dot">6</span><b>Optional</b><span>Further systems, only if you choose</span><em>Client-led</em></div>
+  </div>
+  <div class="pilot"><span class="tag t">Proposed pilot</span><b>One scheduling team or provider group</b><span style="color:var(--muted)">Baseline the KPIs, run live, compare. Scope set with you after discovery.</span></div>
+</div></section>
+
+<!-- 12 QUESTIONS -->
+<section id="questions" class="qs"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">12 <b style="color:var(--hero-muted)">Questions for 007 Healthcare</b></div>
+    <h2>Six questions that shape the pilot</h2>
+    <p class="lead">Your answers decide the integration path, the data we can trust, and what success looks like.</p>
+  </div>
+  <div class="qgrid">
+    <div class="qcard"><span class="qn">01</span><small>Telephony</small><p>Which platform and version run your scheduling lines (Cisco, X-Lite, PingPal or other), and is API or CTI access licensed?</p></div>
+    <div class="qcard"><span class="qn">02</span><small>Call outcomes</small><p>Can agents select wrap-up or disposition codes in your phone system today, and could we standardize them (booked, no slot, coverage issue, callback)?</p></div>
+    <div class="qcard"><span class="qn">03</span><small>Unbooked outcomes</small><p>When a caller doesn't get an appointment, how is that captured today, and who follows up?</p></div>
+    <div class="qcard"><span class="qn">04</span><small>Callbacks</small><p>How are missed, abandoned and pending-callback patients tracked and worked today?</p></div>
+    <div class="qcard key"><span class="qn">05</span><small>Most important</small><p>Can you share an average net revenue per visit (aggregate, no patient data) so we can size revenue at risk on your numbers?</p></div>
+    <div class="qcard"><span class="qn">06</span><small>Success</small><p>Which three outcomes would make this pilot a success: fewer missed calls, higher conversion, agent productivity, or revenue leakage visibility?</p></div>
+  </div>
+</div></section>
+
+<!-- CLOSE -->
+<section id="close"><div class="wrap">
+  <div class="sec-head">
+    <div class="eyebrow">Close <b>What to take away</b></div>
+    <h2>Five things NovaChron RevX gives 007 Healthcare</h2>
+  </div>
+  <div class="five">
+    <div><i>01</i>Visibility into every patient access opportunity</div>
+    <div><i>02</i>Clarity on where appointments are lost</div>
+    <div><i>03</i>Process fixes, not employee blame</div>
+    <div><i>04</i>Front-office performance tied to revenue</div>
+    <div><i>05</i>Proactive management, not after-the-fact reports</div>
+  </div>
+  <p class="closing">Next step: a focused discovery and pilot on inbound calls, scheduling conversion, callbacks and exceptions, running on your existing voice platform, with no PHI or EHR integration, and measured against your baseline.</p>
+</div></section>
+</main>
+
+<footer><div class="wrap"><span>Tobss · NovaChron RevX Patient Access &amp; Operations Intelligence</span><span>Prepared for 007 Healthcare Advisory · All figures illustrative</span></div></footer>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const fmt=n=>Math.round(n).toLocaleString('en-US');
+  const usd=n=>'$'+fmt(n);
+  function calc(){
+    const calls=+$('c-calls').value, s=+$('c-sched').value/100, c=+$('c-conv').value/100, r=+$('c-rec').value/100, v=+$('c-rev').value;
+    $('o-calls').textContent=fmt(calls); $('o-sched').textContent=Math.round(s*100)+'%';
+    $('o-conv').textContent=Math.round(c*100)+'%'; $('o-rec').textContent=Math.round(r*100)+'%'; $('o-rev').textContent=usd(v);
+    const lost=calls*s*(1-c), rev=lost*r*v;
+    $('r-lost').textContent=fmt(lost); $('r-rev').textContent=usd(rev); $('r-yr').textContent=usd(rev*12)+' / year';
+  }
+  ['c-calls','c-sched','c-conv','c-rec','c-rev'].forEach(id=>$(id).addEventListener('input',calc));
+  calc();
+})();
+</script>
+
+</body>
+</html>
